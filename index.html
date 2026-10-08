@@ -1,0 +1,947 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#111111">
+  <title>لوحة متابعة الجودة | QC</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #111111;
+      --panel: #1c1c1c;
+      --panel-2: #272727;
+      --line: #383838;
+      --text: #f7f7f3;
+      --muted: #aaa99f;
+      --teal: #ffe500;
+      --blue: #f3d900;
+      --amber: #ffc928;
+      --red: #ff5964;
+      --green: #b9e86a;
+      font-family: "Segoe UI", Tahoma, Arial, sans-serif;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--bg); color: var(--text); }
+    button, input, select { font: inherit; }
+    button, a { -webkit-tap-highlight-color: transparent; }
+    .shell { width: min(1560px, 100%); margin: auto; padding: 24px; }
+    .topbar { display: flex; align-items: center; justify-content: space-between; gap: 18px; margin-bottom: 22px; }
+    .brand { display: flex; align-items: center; gap: 13px; }
+    .brand-mark { width: 92px; height: 60px; flex: 0 0 auto; overflow: hidden; display: grid; place-items: center; border: 1px solid #eed700; border-radius: 10px; background: #f6df16; }
+    .brand-mark img { display: block; width: 100%; height: 100%; object-fit: contain; }
+    h1, h2, p { margin: 0; }
+    h1 { font-size: clamp(21px, 3vw, 30px); letter-spacing: -.02em; }
+    .subtitle { color: var(--muted); font-size: 13px; margin-top: 5px; }
+    .actions { display: flex; flex-wrap: wrap; align-items: center; gap: 9px; }
+    .button { display: inline-flex; gap: 8px; align-items: center; justify-content: center; border: 1px solid var(--line); border-radius: 10px; background: var(--panel-2); color: var(--text); padding: 10px 14px; text-decoration: none; cursor: pointer; transition: border-color .15s, background .15s; }
+    .button:hover { border-color: #77715a; background: #303030; }
+    .button.primary { border-color: #f0d900; background: #ffe500; color: #111111; font-weight: 700; }
+    .button.primary:hover { border-color: #fff066; background: #fff066; }
+    .button:disabled { opacity: .55; cursor: wait; }
+    .connection { display: inline-flex; align-items: center; gap: 7px; padding: 8px 11px; border: 1px solid var(--line); border-radius: 999px; color: var(--muted); font-size: 12px; white-space: nowrap; }
+    .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--amber); }
+    .connection.ok .dot { background: var(--green); box-shadow: 0 0 10px #86efac66; }
+    .connection.error .dot { background: var(--red); }
+    .notice { display: none; border: 1px solid #795426; border-radius: 12px; background: #302716; color: #ffe7af; padding: 13px 16px; margin-bottom: 18px; line-height: 1.7; }
+    .notice.show { display: block; }
+    .notice a { color: #fcd58a; }
+    .filters { display: grid; grid-template-columns: repeat(6, minmax(130px, 1fr)) auto; gap: 10px; padding: 14px; margin-bottom: 16px; border: 1px solid var(--line); border-radius: 14px; background: var(--panel); }
+    .field { min-width: 0; }
+    .field label { display: block; margin: 0 0 6px; color: var(--muted); font-size: 11px; }
+    .field input, .field select { width: 100%; min-width: 0; height: 39px; padding: 0 10px; border: 1px solid var(--line); border-radius: 9px; outline: none; background: #111824; color: var(--text); }
+    .field input:focus, .field select:focus { border-color: #ffe500; }
+    .filters .filter-actions { display: flex; align-items: end; }
+    .filters .filter-actions button { height: 39px; white-space: nowrap; }
+    .meta-row { display: flex; justify-content: space-between; gap: 12px; margin: 0 2px 13px; color: var(--muted); font-size: 12px; }
+    .meta-row strong { color: var(--text); }
+    .grid { display: grid; gap: 14px; }
+    .kpis { grid-template-columns: repeat(6, minmax(0, 1fr)); margin-bottom: 14px; }
+    .card, .panel { border: 1px solid var(--line); border-radius: 14px; background: var(--panel); }
+    .kpi { min-height: 112px; padding: 15px 16px; position: relative; overflow: hidden; }
+    .kpi::after { content: ""; position: absolute; inset-inline-end: -22px; bottom: -38px; width: 90px; height: 90px; border-radius: 50%; background: var(--accent, #ffe500); opacity: .09; }
+    .kpi-label { color: var(--muted); font-size: 12px; }
+    .kpi-value { font-size: clamp(23px, 2.2vw, 31px); font-weight: 750; margin-top: 12px; letter-spacing: -.025em; direction: ltr; text-align: right; }
+    .kpi-note { color: var(--muted); font-size: 11px; margin-top: 5px; }
+    .kpi.teal { --accent: var(--teal); } .kpi.blue { --accent: var(--blue); } .kpi.amber { --accent: var(--amber); } .kpi.red { --accent: var(--red); } .kpi.green { --accent: var(--green); }
+    .two-col { grid-template-columns: 1fr 1fr; margin-bottom: 14px; }
+    .panel { padding: 17px; min-width: 0; }
+    .panel-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 16px; }
+    .panel h2 { font-size: 15px; }
+    .panel-hint { margin-top: 5px; color: var(--muted); font-size: 11px; }
+    .chart { display: grid; gap: 12px; }
+    .bar-row { display: grid; grid-template-columns: minmax(100px, 1fr) minmax(80px, 1fr) minmax(150px, 1.5fr); align-items: center; gap: 12px; min-height: 23px; }
+    .bar-label { overflow: hidden; color: #cbd5e1; font-size: 12px; text-overflow: ellipsis; white-space: nowrap; direction: ltr; text-align: right; }
+    .bar-track { height: 9px; overflow: hidden; border-radius: 99px; background: #263244; }
+    .bar-fill { height: 100%; min-width: 2px; border-radius: inherit; background: linear-gradient(90deg, #b9a600, #ffe500); }
+    .bar-fill.blue { background: linear-gradient(90deg, #cbb900, #fff066); }
+    .bar-fill.amber { background: linear-gradient(90deg, #d97706, #ffc928); }
+    .bar-value { color: var(--muted); font-size: 11px; text-align: right; direction: rtl; overflow-wrap: anywhere; }
+    .empty-chart { color: var(--muted); padding: 15px 0; font-size: 13px; }
+    .insight-strip { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 10px; margin-bottom: 14px; }
+    .insight { padding: 13px 15px; border-radius: 12px; border: 1px solid var(--line); background: var(--panel); }
+    .insight-label { color: var(--muted); font-size: 11px; }
+    .insight-value { margin-top: 7px; font-size: 17px; font-weight: 700; }
+    .insight-value.warning { color: var(--amber); }
+    .insight-value.good { color: var(--green); }
+    .section { margin-top: 14px; }
+    .section .panel-head { margin-bottom: 12px; }
+    .table-wrap { overflow: auto; border: 1px solid var(--line); border-radius: 11px; }
+    table { width: 100%; border-collapse: collapse; white-space: nowrap; font-size: 12px; }
+    th, td { padding: 11px 12px; border-bottom: 1px solid #253043; text-align: right; }
+    th { position: sticky; top: 0; z-index: 1; background: #2c2b24; color: #f4edb5; font-size: 11px; font-weight: 600; }
+    tbody tr:last-child td { border-bottom: 0; }
+    tbody tr:hover { background: #1c2736; }
+    .detail-row { cursor: pointer; }
+    .details { display: none; background: #151515; }
+    .details.open { display: table-row; }
+    .details td { white-space: normal; padding: 14px; }
+    .detail-grid { display: grid; grid-template-columns: repeat(4, minmax(130px,1fr)); gap: 12px; }
+    .detail-item { min-width: 0; }
+    .detail-item span { display: block; color: var(--muted); font-size: 10px; margin-bottom: 4px; }
+    .detail-item b { display: block; overflow-wrap: anywhere; font-weight: 550; direction: ltr; text-align: right; }
+    .badge { display: inline-flex; border-radius: 999px; padding: 4px 8px; font-size: 10px; background: #343012; color: #fff066; }
+    .badge.warn { background: #463817; color: #ffd85d; }
+    .badge.danger { background: #451d24; color: #ff9ba1; }
+    .table-foot { display: flex; justify-content: space-between; gap: 12px; padding: 11px 2px 0; color: var(--muted); font-size: 11px; }
+    .table-foot b { color: var(--text); }
+    .skeleton { color: var(--muted); }
+    .footer { display: flex; justify-content: space-between; gap: 10px; color: var(--muted); padding: 19px 3px 5px; font-size: 11px; }
+    .footer a { color: var(--blue); text-decoration: none; }
+    @media (max-width: 1150px) {
+      .kpis { grid-template-columns: repeat(3, minmax(0,1fr)); }
+      .filters { grid-template-columns: repeat(4, minmax(120px,1fr)); }
+      .filters .filter-actions { align-items: end; }
+    }
+    @media (max-width: 760px) {
+      .shell { padding: 15px 12px; }
+      .topbar { align-items: flex-start; flex-direction: column; }
+      .actions { width: 100%; }
+      .filters { grid-template-columns: repeat(2, minmax(0,1fr)); }
+      .filters .filter-actions { grid-column: span 2; }
+      .filters .filter-actions button { flex: 1; }
+      .kpis { grid-template-columns: repeat(2, minmax(0,1fr)); gap: 9px; }
+      .kpi { min-height: 102px; padding: 13px; }
+      .two-col { grid-template-columns: 1fr; }
+      .insight-strip { grid-template-columns: 1fr; }
+      .detail-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
+      .meta-row, .footer { flex-direction: column; }
+    }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand-mark"><img src="noon-minutes-logo.png" alt="شعار noon Minutes"></div>
+        <div>
+          <h1>لوحة متابعة الجودة</h1>
+          <p class="subtitle">مؤشرات التشغيل، الفروقات، وتفاصيل كل عملية من الشيت مباشرة</p>
+        </div>
+      </div>
+      <div class="actions">
+        <span id="connection" class="connection"><i class="dot"></i><span id="connectionText">جارٍ الاتصال بالشيت...</span></span>
+        <button id="languageButton" class="button" type="button" aria-label="Switch language">English</button>
+        <button id="refreshButton" class="button primary" type="button">↻ تحديث البيانات</button>
+        <button id="reportButton" class="button primary" type="button">▤ تقرير ملخص PDF</button>
+        <a class="button" href="https://docs.google.com/spreadsheets/d/1SenX4zUU11qWYTvE42a0OWIr3tBgHGWl4Nt-OtAZOvw/edit?usp=sharing" target="_blank" rel="noopener">↗ فتح الشيت</a>
+      </div>
+    </header>
+
+    <div id="notice" class="notice" role="alert"></div>
+
+    <section class="filters" aria-label="تصفية البيانات">
+      <div class="field"><label for="dateFilter">تاريخ العملية</label><select id="dateFilter"><option value="">كل التواريخ</option></select></div>
+      <div class="field"><label for="warehouseFilter">المخزن</label><select id="warehouseFilter"><option value="">كل المخازن</option></select></div>
+      <div class="field"><label for="operatorFilter">المستخدم</label><select id="operatorFilter"><option value="">كل المستخدمين</option></select></div>
+      <div class="field"><label for="statusFilter">الحالة</label><select id="statusFilter"><option value="">كل الحالات</option></select></div>
+      <div class="field"><label for="issueFilter">نوع الملاحظة</label><select id="issueFilter"><option value="">كل العمليات</option><option value="missing">بها نقص</option><option value="excess">بها زيادة</option><option value="damaged">بها تالف</option><option value="anomaly">ملاحظة جودة بيانات</option><option value="clean">بدون فروقات</option></select></div>
+      <div class="field"><label for="searchFilter">بحث في كل التفاصيل</label><input id="searchFilter" type="search" placeholder="رقم QC، كود حاوية، Picking..." autocomplete="off"></div>
+      <div class="filter-actions"><button id="resetButton" class="button" type="button">مسح الفلاتر</button></div>
+    </section>
+
+    <div class="meta-row"><span id="recordMeta" class="skeleton">في انتظار البيانات...</span><span id="updatedMeta"></span></div>
+
+    <section id="kpis" class="grid kpis" aria-label="المؤشرات الرئيسية"></section>
+    <section id="insights" class="insight-strip"></section>
+
+    <section class="grid two-col">
+      <article class="panel">
+        <div class="panel-head"><div><h2>حجم الفحص حسب المخزن</h2><p class="panel-hint">عدد العمليات، الكمية المفحوصة، والكمية الناقصة</p></div></div>
+        <div id="warehouseChart" class="chart"></div>
+      </article>
+      <article class="panel">
+        <div class="panel-head"><div><h2>ملخص حسب المستخدم</h2><p class="panel-hint">عدد العمليات وحالات النقص والزيادة لكل مستخدم</p></div></div>
+        <div id="operatorChart" class="chart"></div>
+      </article>
+    </section>
+
+    <section class="grid two-col">
+      <article class="panel">
+        <div class="panel-head"><div><h2>النقص حسب التاريخ</h2><p class="panel-hint">عدد الوحدات المسجلة كمفقودة في كل يوم</p></div></div>
+        <div id="dateChart" class="chart"></div>
+      </article>
+      <article class="panel">
+        <div class="panel-head"><div><h2>توزيع حالات الفحص</h2><p class="panel-hint">نسبة العمليات التي تحتوي على نقص أو زيادة أو تلف</p></div></div>
+        <div id="issueChart" class="chart"></div>
+      </article>
+    </section>
+
+    <section class="panel section">
+      <div class="panel-head"><div><h2>تنبيهات ومراجعات</h2><p class="panel-hint">فحوصات آلية على اتساق الكميات وحقول التعريف وتكرار الأكواد</p></div><span id="alertCount" class="badge">0 تنبيه</span></div>
+      <div class="table-wrap"><table><thead><tr><th>الأولوية</th><th>المراجعة</th><th>عدد الحالات</th><th>التفاصيل</th></tr></thead><tbody id="alertsBody"></tbody></table></div>
+    </section>
+
+    <section class="panel section">
+      <div class="panel-head">
+        <div><h2>سجل عمليات QC</h2><p class="panel-hint">اضغط على أي صف لعرض كل حقول العملية والأكواد المرتبطة بها</p></div>
+        <button id="exportButton" class="button" type="button">↓ تصدير النتائج CSV</button>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>رقم QC</th><th>التاريخ</th><th>المخزن</th><th>المستخدم</th><th>الحالة</th><th>كمية المصدر</th><th>الوجهة</th><th>النقص</th><th>الزيادة</th><th>التالف</th><th>الملاحظة</th></tr></thead>
+          <tbody id="recordsBody"><tr><td colspan="11" class="skeleton">جارٍ تحميل البيانات من الشيت...</td></tr></tbody>
+        </table>
+      </div>
+      <div class="table-foot"><span id="tableCount"></span><span>إجمالي الوحدات = المصدر + المسجل كمفقود. الأرقام حسب البيانات المسجلة بالشيت.</span></div>
+    </section>
+
+    <footer class="footer"><span>المصدر: ملف QC المرتبط · يتم جلب البيانات عند فتح الصفحة أو الضغط على تحديث.</span><a href="https://docs.google.com/spreadsheets/d/1SenX4zUU11qWYTvE42a0OWIr3tBgHGWl4Nt-OtAZOvw/edit?usp=sharing" target="_blank" rel="noopener">الانتقال إلى الشيت ↗</a></footer>
+  </main>
+
+  <script src="html2pdf.bundle.min.js"></script>
+  <script>
+    "use strict";
+    const SHEET_ID = "1SenX4zUU11qWYTvE42a0OWIr3tBgHGWl4Nt-OtAZOvw";
+    const SHEET_GID = "0";
+    const SHEET_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/edit?usp=sharing`;
+    const EXPORT_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&gid=${SHEET_GID}`;
+    const HEADERS = [
+      "src_container_code", "warehouse_code", "status", "qc_drop_zone_location_code",
+      "job_nr", "qc_job_user_username", "picking_job_nr", "qc_job_start_date",
+      "qc_criteria", "src_container_qty", "excess_qty", "damaged_qty",
+      "dest_container_qty", "missing_qty", "dest_container_code",
+      "excess_container_code", "damage_container_code"
+    ];
+    const LABELS = {
+      src_container_code: "كود حاوية المصدر", warehouse_code: "كود المخزن", status: "الحالة",
+      qc_drop_zone_location_code: "موقع منطقة التسليم", job_nr: "رقم عملية QC",
+      qc_job_user_username: "مستخدم QC", picking_job_nr: "رقم عملية Picking",
+      qc_job_start_date: "تاريخ بدء QC", qc_criteria: "معيار QC",
+      src_container_qty: "كمية حاوية المصدر", excess_qty: "الكمية الزائدة",
+      damaged_qty: "الكمية التالفة", dest_container_qty: "كمية حاوية الوجهة",
+      missing_qty: "الكمية الناقصة", dest_container_code: "كود حاوية الوجهة",
+      excess_container_code: "كود حاوية الزيادة", damage_container_code: "كود حاوية التالف"
+    };
+    let currentLanguage = localStorage.getItem("qc-dashboard-language") === "en" ? "en" : "ar";
+    const state = { rows: [], filtered: [], loading: false, error: "", reportDownloadUrl: "", duplicateSources: new Set(), duplicateDestinations: new Set() };
+    const numberFormat = { format: value => new Intl.NumberFormat(currentLanguage === "en" ? "en-US" : "ar-EG").format(value) };
+    const byId = id => document.getElementById(id);
+    const numericFields = ["src_container_qty", "excess_qty", "damaged_qty", "dest_container_qty", "missing_qty"];
+    const translations = {
+      "لوحة متابعة الجودة": "Quality Control Dashboard",
+      "مؤشرات التشغيل، الفروقات، وتفاصيل كل عملية من الشيت مباشرة": "Operations, discrepancies, and full job details — live from the spreadsheet",
+      "جارٍ الاتصال بالشيت...": "Connecting to spreadsheet...",
+      "جارٍ تحديث الشيت...": "Refreshing spreadsheet...",
+      "متصل بالشيت": "Connected to spreadsheet",
+      "تعذر الاتصال": "Connection failed",
+      "↻ تحديث البيانات": "↻ Refresh data",
+      "▤ تقرير ملخص PDF": "▤ Summary report PDF",
+      "↗ فتح الشيت": "↗ Open spreadsheet",
+      "تصفية البيانات": "Filters",
+      "تاريخ العملية": "Job date", "كل التواريخ": "All dates",
+      "تاريخ": "date",
+      "المخزن": "Warehouse", "كل المخازن": "All warehouses",
+      "المستخدم": "Operator", "كل المستخدمين": "All operators",
+      "الحالة": "Status", "كل الحالات": "All statuses",
+      "نوع الملاحظة": "Issue type", "كل العمليات": "All jobs",
+      "بها نقص": "With missing items", "بها زيادة": "With excess items",
+      "بها تالف": "With damaged items", "ملاحظة جودة بيانات": "Data quality issue",
+      "بدون فروقات": "No discrepancies",
+      "بحث في كل التفاصيل": "Search all details",
+      "رقم QC، كود حاوية، Picking...": "QC job, container code, Picking...",
+      "مسح الفلاتر": "Clear filters",
+      "في انتظار البيانات...": "Waiting for data...",
+      "المؤشرات الرئيسية": "Key metrics",
+      "عمليات QC": "QC jobs", "كمية المصدر": "Source quantity",
+      "كمية الوجهة": "Destination quantity", "كمية النقص": "Missing quantity",
+      "كمية الزيادة": "Excess quantity", "كمية التالف": "Damaged quantity",
+      "من كمية المصدر": "of source quantity",
+      "إجمالي الوحدات المسجلة للفحص": "Total units recorded for inspection",
+      "عملية بها زيادة": "jobs with excess",
+      "عملية بها تالف": "jobs with damage",
+      "مطابقة الكميات": "Quantity reconciliation",
+      "عمليات بها نقص": "Jobs with missing items",
+      "من العمليات": "of jobs",
+      "بدون رقم Picking": "Missing Picking number",
+      "حجم الفحص حسب المخزن": "Inspection volume by warehouse",
+      "عدد العمليات، الكمية المفحوصة، والكمية الناقصة": "Job count, inspected quantity, and missing quantity",
+      "ملخص حسب المستخدم": "Summary by operator",
+      "عدد العمليات وحالات النقص والزيادة لكل مستخدم": "Job count and missing/excess cases per operator",
+      "النقص حسب التاريخ": "Missing quantity by date",
+      "عدد الوحدات المسجلة كمفقودة في كل يوم": "Units recorded as missing per day",
+      "توزيع حالات الفحص": "Inspection issue breakdown",
+      "نسبة العمليات التي تحتوي على نقص أو زيادة أو تلف": "Jobs with missing, excess, or damaged items",
+      "بدون فروقات مسجلة": "No recorded discrepancies",
+      "عملية": "jobs", "وحدة": "units", "نقص": "Missing",
+      "زيادة": "Excess", "تالف": "Damaged",
+      "تنبيهات ومراجعات": "Alerts & reviews",
+      "فحوصات آلية على اتساق الكميات وحقول التعريف وتكرار الأكواد": "Automated checks for quantity reconciliation, missing identifiers, and duplicate codes",
+      "تنبيه": "alerts", "تنبيهات": "alerts",
+      "الأولوية": "Priority", "المراجعة": "Check", "عدد الحالات": "Cases", "التفاصيل": "Details",
+      "مراجعة عاجلة": "Urgent review", "تحقق": "Check", "مطابقة": "Duplicate check",
+      "الزيادة أكبر من كمية المصدر": "Excess exceeds source quantity",
+      "عدم تطابق المصدر مع الوجهة + النقص": "Source does not equal destination + missing",
+      "حقول تعريف ناقصة": "Missing identifiers",
+      "أكواد حاويات مكررة": "Duplicate container codes",
+      "كل العمليات متطابقة حسابيًا": "All jobs reconcile arithmetically",
+      "لا توجد حالات": "No cases",
+      "رقم Picking مفقود": "Missing Picking number",
+      "كود زيادة مفقود": "Missing excess code",
+      "كود تالف مفقود": "Missing damage code",
+      "كود مصدر/وجهة مفقود": "Missing source/destination code",
+      "المصدر": "Source", "الوجهة": "Destination",
+      "سجل عمليات QC": "QC job log",
+      "اضغط على أي صف لعرض كل حقول العملية والأكواد المرتبطة بها": "Select a row to view all job fields and associated codes",
+      "↓ تصدير النتائج CSV": "↓ Export results CSV",
+      "رقم QC": "QC job", "التاريخ": "Date",
+      "كمية المصدر": "Source qty", "النقص": "Missing", "الزيادة": "Excess", "التالف": "Damaged",
+      "الملاحظة": "Issue",
+      "جارٍ تحميل البيانات من الشيت...": "Loading spreadsheet data...",
+      "السجلات المعروضة:": "Records shown:",
+      "لا توجد عمليات مطابقة للفلاتر.": "No jobs match the selected filters.",
+      "إجمالي الوحدات = المصدر + المسجل كمفقود. الأرقام حسب البيانات المسجلة بالشيت.": "Total units = source + recorded missing. Values reflect spreadsheet entries.",
+      "المصدر: ملف QC المرتبط · يتم جلب البيانات عند فتح الصفحة أو الضغط على تحديث.": "Source: linked QC spreadsheet · data loads when the page opens or you refresh.",
+      "الانتقال إلى الشيت ↗": "Open spreadsheet ↗",
+      "كود حاوية المصدر": "Source container code", "كود المخزن": "Warehouse code",
+      "الحالة": "Status", "موقع منطقة التسليم": "Drop-zone location",
+      "رقم عملية QC": "QC job number", "مستخدم QC": "QC operator",
+      "رقم عملية Picking": "Picking job number", "تاريخ بدء QC": "QC start date",
+      "معيار QC": "QC criteria", "كمية حاوية المصدر": "Source container quantity",
+      "الكمية الزائدة": "Excess quantity", "الكمية التالفة": "Damaged quantity",
+      "كمية حاوية الوجهة": "Destination container quantity",
+      "الكمية الناقصة": "Missing quantity", "كود حاوية الوجهة": "Destination container code",
+      "كود حاوية الزيادة": "Excess container code", "كود حاوية التالف": "Damaged container code",
+      "غير محدد": "Unspecified", "غير محددة": "Unspecified",
+      "بدون فروقات": "No discrepancies", "بدون Picking": "Missing Picking",
+      "فرق غير مطابق": "Quantity mismatch", "كود حاوية مكرر": "Duplicate container code",
+      "كود حاوية مفقود": "Missing container code",
+      "تعذر تحميل البيانات من الشيت مباشرة.": "Could not load spreadsheet data directly.",
+      "تأكدي من أن صلاحية المشاركة تسمح بالعرض، ثم أعيدي المحاولة.": "Make sure the spreadsheet is shared for viewing, then try again.",
+      "افتحي الشيت": "Open spreadsheet",
+      "الشيت لا يحتوي على صفوف بيانات.": "The spreadsheet contains no data rows.",
+      "انتهت مهلة الاتصال بالشيت.": "Spreadsheet connection timed out.",
+      "تعذر الوصول إلى الشيت. تأكدي من أن الملف متاح لمن لديه الرابط.": "Could not reach the spreadsheet. Check that it is shared with link viewers.",
+      "تعذر قراءة استجابة الشيت.": "Could not read the spreadsheet response.",
+      "تعذر تحميل السجلات من الشيت.": "Could not load records from spreadsheet.",
+      "لم أتمكن من جلب بيانات الشيت مباشرة.": "Could not fetch spreadsheet data directly.",
+      "لا توجد بيانات معروضة؛ يلزم اتصال بالشيت.": "No data is displayed; a spreadsheet connection is required.",
+      "لا توجد بيانات ضمن الفلاتر الحالية.": "No data for the current filters.",
+      "لم يُرجع الشيت بيانات CSV. تحققي من صلاحية مشاركة الملف.": "The spreadsheet returned no CSV data. Check its sharing permissions.",
+      "لا توجد بيانات لتصديرها.": "There is no data to export.",
+      "لا توجد سجلات لإنشاء التقرير.": "There are no records to include in the report.",
+      "جارٍ إنشاء PDF...": "Generating PDF...",
+      "تم تجهيز التقرير بصيغة PDF. إذا لم يبدأ التنزيل تلقائيًا، اضغط هنا لتنزيله.": "The PDF report is ready. If the download did not start automatically, click here to download it.",
+      "تعذر إنشاء PDF.": "Could not generate PDF.",
+      "تقرير عمليات الجودة": "QC Summary Report",
+      "التحليل": "Analysis",
+      "أبرز ملاحظة": "Key finding",
+      "أهم الحالات للمراجعة": "Key cases to review",
+      "لا توجد حالات تحتاج مراجعة ضمن الفلاتر الحالية.": "No cases need review in the current filters.",
+      "الزيادة المسجلة أكبر من كمية المصدر في العملية": "Recorded excess exceeds the source quantity in job",
+      "تم تسجيل وحدات نقص في بعض العمليات.": "Missing units were recorded in some jobs.",
+      "معظم العمليات ليس بها نقص مسجل.": "Most jobs have no recorded missing items.",
+      "نسبة الفاقد من المصدر": "Missing as a share of source",
+      "نسبة العمليات المتأثرة": "Share of affected jobs",
+      "متوسط المصدر لكل عملية": "Average source per job",
+      "وحدة لكل عملية": "units per job",
+      "مطابقة": "Reconciled",
+      "تاريخ إنشاء التقرير": "Report generated",
+      "نطاق التقرير": "Report scope",
+      "كل البيانات": "All data",
+      "الفلاتر المطبقة": "Applied filters",
+      "ملخص تنفيذي": "Executive summary",
+      "الملخص حسب المخزن": "Summary by warehouse",
+      "تفاصيل الفحص حسب المخزن": "Inspection details by warehouse",
+      "عدد العمليات والكمية المفحوصة والوجهة والنقص لكل مخزن": "Job count, inspected quantity, destination quantity, and missing quantity per warehouse",
+      "الكمية المفحوصة": "Inspected quantity",
+      "نسبة النقص": "Missing rate",
+      "من كمية المصدر": "of source quantity",
+      "من إجمالي الفحص": "of total inspected",
+      "الملخص حسب المستخدم": "Summary by operator",
+      "ملخص الحالات": "Status summary",
+      "أهم الحالات للمراجعة": "Key cases to review",
+      "التحليل": "Analysis",
+      "أبرز ملاحظة": "Key finding",
+      "حالات النقص الأعلى": "Largest missing cases",
+      "ملخص الكميات": "Quantity summary",
+      "رقم العملية": "Job number",
+      "عدد العمليات": "Number of jobs",
+      "كمية المصدر": "Source quantity",
+      "كمية الوجهة": "Destination quantity",
+      "النقص": "Missing",
+      "الزيادة": "Excess",
+      "التالف": "Damaged",
+      "معدل النقص": "Missing rate",
+      "عمليات بها نقص": "Jobs with missing items",
+      "عمليات بها زيادة": "Jobs with excess items",
+      "عمليات بها تالف": "Jobs with damaged items",
+      "مطابقة الكميات": "Quantity reconciliation",
+      "عمليات غير متطابقة": "Unreconciled jobs",
+      "رقم Picking مفقود": "Missing Picking number",
+      "أكواد المصدر المكررة": "Duplicate source codes",
+      "أكواد الوجهة المكررة": "Duplicate destination codes",
+      "اسم المستخدم": "Operator",
+      "اضغطي طباعة أو اختاري حفظ بصيغة PDF من نافذة الطباعة.": "Choose Print or Save as PDF in the print dialog.",
+      "الكمية": "Quantity",
+      "نسبة الفاقد من المصدر": "Missing as share of source",
+      "نسبة العمليات المتأثرة": "Share of affected jobs",
+      "متوسط المصدر لكل عملية": "Average source per job",
+      "وحدة لكل عملية": "units per job",
+      "مطابقة": "Reconciled",
+      "حالة": "Status",
+      "لا توجد حالات تحتاج مراجعة ضمن الفلاتر الحالية.": "No cases need review in the current filters.",
+      "معظم العمليات ليس بها نقص مسجل.": "Most jobs have no recorded missing items.",
+      "تم تسجيل وحدات نقص في بعض العمليات.": "Missing units were recorded across some jobs.",
+      "الزيادة المسجلة أكبر من كمية المصدر في العملية": "Recorded excess is greater than the source quantity",
+      "الأرقام حسب البيانات المسجلة بالشيت.": "Values reflect the spreadsheet entries.",
+      "عملية بها زيادة": "jobs with excess",
+      "من العمليات": "of jobs",
+      "اتصال بالشيت": "spreadsheet connection",
+      "المعروض": "Showing", "من": "of",
+      "آخر تحديث:": "Last updated:",
+      "كود مصدر/وجهة مفقود:": "Missing source/destination code:",
+      "رقم Picking مفقود:": "Missing Picking number:",
+      "كود زيادة مفقود:": "Missing excess code:",
+      "كود تالف مفقود:": "Missing damage code:"
+    };
+    const englishToArabic = new Map(Object.entries(translations).map(([arabic, english]) => [english, arabic]));
+
+    function localizeText(text) {
+      const dictionary = currentLanguage === "en" ? translations : Object.fromEntries(englishToArabic);
+      const phrases = Object.keys(dictionary).sort((a, b) => b.length - a.length);
+      if (!phrases.length) return text;
+      const matcher = new RegExp(phrases.map(phrase => phrase.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("|"), "g");
+      return text.replace(matcher, phrase => dictionary[phrase]);
+    }
+    function applyLanguage() {
+      document.documentElement.lang = currentLanguage;
+      document.documentElement.dir = currentLanguage === "ar" ? "rtl" : "ltr";
+      document.title = currentLanguage === "ar" ? "لوحة متابعة الجودة | QC" : "Quality Control Dashboard | QC";
+      byId("languageButton").setAttribute("aria-label", currentLanguage === "ar" ? "Switch to English" : "التبديل إلى العربية");
+      const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+      let node;
+      while ((node = walker.nextNode())) node.nodeValue = localizeText(node.nodeValue);
+      for (const element of document.querySelectorAll("[placeholder], [aria-label], [title]")) {
+        for (const attribute of ["placeholder", "aria-label", "title"]) {
+          if (element.hasAttribute(attribute)) element.setAttribute(attribute, localizeText(element.getAttribute(attribute)));
+        }
+      }
+      byId("languageButton").textContent = currentLanguage === "ar" ? "English" : "العربية";
+    }
+
+    function escapeHtml(value) {
+      return String(value ?? "").replace(/[&<>"']/g, char => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[char]));
+    }
+    function asNumber(value) {
+      const parsed = Number(value);
+      return Number.isFinite(parsed) ? parsed : 0;
+    }
+    function cleanDate(value) {
+      if (value instanceof Date && Number.isFinite(value.getTime())) {
+        return `${value.getMonth() + 1}/${value.getDate()}/${value.getFullYear()}`;
+      }
+      const match = String(value ?? "").match(/^Date\((\d+),\s*(\d+),\s*(\d+)(?:,\s*\d+,\s*\d+,\s*\d+)?\)$/);
+      if (match) return `${Number(match[2]) + 1}/${Number(match[3])}/${match[1]}`;
+      return String(value ?? "").trim();
+    }
+    function dateKey(value) {
+      const match = String(value ?? "").match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+      if (match) return `${match[3]}-${match[1].padStart(2, "0")}-${match[2].padStart(2, "0")}`;
+      const parsed = new Date(value);
+      return Number.isFinite(parsed.getTime()) ? parsed.toISOString().slice(0, 10) : String(value ?? "");
+    }
+    function normalizeRows(rows) {
+      return rows.map(row => {
+        const normalized = {};
+        for (const header of HEADERS) normalized[header] = String(row[header] ?? "").trim();
+        for (const field of numericFields) normalized[field] = asNumber(normalized[field]);
+        normalized.qc_job_start_date = cleanDate(normalized.qc_job_start_date);
+        return normalized;
+      });
+    }
+    function parseCsv(text) {
+      const rows = [];
+      let row = [], value = "", quoted = false;
+      for (let index = 0; index < text.length; index++) {
+        const char = text[index];
+        if (quoted) {
+          if (char === '"' && text[index + 1] === '"') { value += '"'; index++; }
+          else if (char === '"') quoted = false;
+          else value += char;
+        } else if (char === '"') quoted = true;
+        else if (char === ",") { row.push(value); value = ""; }
+        else if (char === "\n" || char === "\r") {
+          if (char === "\r" && text[index + 1] === "\n") index++;
+          row.push(value); value = "";
+          if (row.some(cell => cell.trim() !== "")) rows.push(row);
+          row = [];
+        } else value += char;
+      }
+      if (value !== "" || row.length) { row.push(value); rows.push(row); }
+      if (!rows.length) throw new Error("الشيت لا يحتوي على صفوف بيانات.");
+      const headers = rows.shift().map(header => header.replace(/^\uFEFF/, "").trim());
+      const missing = HEADERS.filter(header => !headers.includes(header));
+      if (missing.length) throw new Error(`أعمدة مطلوبة غير موجودة في الشيت: ${missing.join(", ")}`);
+      return rows.map(cells => Object.fromEntries(headers.map((header, index) => [header, cells[index] ?? ""])));
+    }
+    function parseGviz(response) {
+      if (!response || response.status !== "ok" || !response.table) {
+        const message = response?.errors?.map(item => item.detailed_message || item.message).filter(Boolean).join("؛ ");
+        throw new Error(message || "تعذر قراءة استجابة الشيت.");
+      }
+      const columns = response.table.cols.map(column => column.label);
+      const missing = HEADERS.filter(header => !columns.includes(header));
+      if (missing.length) throw new Error(`أعمدة مطلوبة غير موجودة في الشيت: ${missing.join(", ")}`);
+      return response.table.rows.map(item => Object.fromEntries(columns.map((header, index) => {
+        const cell = item.c?.[index];
+        return [header, cell?.f ?? cell?.v ?? ""];
+      })));
+    }
+    function loadJsonp() {
+      return new Promise((resolve, reject) => {
+        const callback = `qcDashboardCallback${Date.now()}${Math.random().toString(36).slice(2)}`;
+        const script = document.createElement("script");
+        const timeout = window.setTimeout(() => finish(new Error("انتهت مهلة الاتصال بالشيت.")), 18000);
+        function finish(error, value) {
+          window.clearTimeout(timeout);
+          delete window[callback];
+          script.remove();
+          if (error) reject(error); else resolve(value);
+        }
+        window[callback] = response => {
+          try { finish(null, parseGviz(response)); }
+          catch (error) { finish(error); }
+        };
+        script.onerror = () => finish(new Error("تعذر الوصول إلى الشيت. تأكدي من أن الملف متاح لمن لديه الرابط."));
+        const tqx = `out:json;responseHandler:${callback}`;
+        script.src = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=${encodeURIComponent(tqx)}&gid=${SHEET_GID}`;
+        document.head.appendChild(script);
+      });
+    }
+    async function fetchSheet() {
+      const response = await fetch(EXPORT_URL, { cache: "no-store" });
+      if (!response.ok) throw new Error(`تعذر تحميل الشيت (HTTP ${response.status}).`);
+      const text = await response.text();
+      if (!text.trim() || text.trimStart().startsWith("<")) throw new Error("لم يُرجع الشيت بيانات CSV. تحققي من صلاحية مشاركة الملف.");
+      return parseCsv(text);
+    }
+    async function loadData() {
+      if (state.loading) return;
+      state.loading = true;
+      byId("refreshButton").disabled = true;
+      byId("connection").className = "connection";
+      byId("connectionText").textContent = "جارٍ تحديث الشيت...";
+      byId("notice").classList.remove("show");
+      try {
+        let rawRows;
+        try { rawRows = await fetchSheet(); }
+        catch (fetchError) {
+          try { rawRows = await loadJsonp(); }
+          catch (jsonpError) { throw new Error(`${fetchError.message} ${jsonpError.message}`); }
+        }
+        if (!rawRows.length) throw new Error("الشيت متاح لكنه لا يحتوي على سجلات.");
+        state.rows = normalizeRows(rawRows);
+        state.duplicateSources = new Set(repeatedCodes(state.rows, "src_container_code").map(([code]) => code));
+        state.duplicateDestinations = new Set(repeatedCodes(state.rows, "dest_container_code").map(([code]) => code));
+        populateFilters();
+        applyFilters();
+        byId("connection").className = "connection ok";
+        byId("connectionText").textContent = "متصل بالشيت";
+        byId("updatedMeta").textContent = `آخر تحديث: ${new Intl.DateTimeFormat("ar-EG", { hour: "2-digit", minute: "2-digit", second: "2-digit" }).format(new Date())}`;
+      } catch (error) {
+        state.error = error.message;
+        byId("connection").className = "connection error";
+        byId("connectionText").textContent = "تعذر الاتصال";
+        byId("notice").innerHTML = `<strong>لم أتمكن من جلب بيانات الشيت مباشرة.</strong> ${escapeHtml(error.message)}<br>تأكدي أن صلاحية المشاركة تسمح بالعرض، ثم أعيدي المحاولة. <a href="${SHEET_URL}" target="_blank" rel="noopener">افتحي الشيت</a>.`;
+        byId("notice").classList.add("show");
+        if (!state.rows.length) {
+          byId("recordMeta").textContent = "لا توجد بيانات معروضة؛ يلزم اتصال بالشيت.";
+          byId("recordsBody").innerHTML = `<tr><td colspan="11">تعذر تحميل السجلات من الشيت.</td></tr>`;
+        }
+      } finally {
+        state.loading = false;
+        byId("refreshButton").disabled = false;
+      }
+    }
+    function populateSelect(id, values, firstLabel) {
+      const select = byId(id);
+      const current = select.value;
+      const options = [...new Set(values.filter(value => value !== ""))];
+      options.sort((a, b) => id === "dateFilter" ? dateKey(b).localeCompare(dateKey(a)) : a.localeCompare(b, "ar"));
+      select.innerHTML = `<option value="">${firstLabel}</option>` + options.map(value => `<option value="${escapeHtml(value)}">${escapeHtml(value)}</option>`).join("");
+      if (options.includes(current)) select.value = current;
+    }
+    function populateFilters() {
+      populateSelect("dateFilter", state.rows.map(row => row.qc_job_start_date), "كل التواريخ");
+      populateSelect("warehouseFilter", state.rows.map(row => row.warehouse_code), "كل المخازن");
+      populateSelect("operatorFilter", state.rows.map(row => row.qc_job_user_username), "كل المستخدمين");
+      populateSelect("statusFilter", state.rows.map(row => row.status), "كل الحالات");
+    }
+    function issues(row) {
+      const values = [];
+      if (row.missing_qty > 0) values.push("missing");
+      if (row.excess_qty > 0) values.push("excess");
+      if (row.damaged_qty > 0) values.push("damaged");
+      if (!row.src_container_code || !row.dest_container_code || !row.picking_job_nr ||
+          state.duplicateSources.has(row.src_container_code) || state.duplicateDestinations.has(row.dest_container_code) ||
+          (row.excess_qty > 0 && !row.excess_container_code) ||
+          (row.damaged_qty > 0 && !row.damage_container_code) ||
+          row.src_container_qty !== row.dest_container_qty + row.missing_qty) values.push("anomaly");
+      if (!values.length) values.push("clean");
+      return values;
+    }
+    function applyFilters() {
+      const date = byId("dateFilter").value, warehouse = byId("warehouseFilter").value;
+      const operator = byId("operatorFilter").value, status = byId("statusFilter").value;
+      const issue = byId("issueFilter").value, search = byId("searchFilter").value.trim().toLocaleLowerCase();
+      state.filtered = state.rows.filter(row => {
+        if (date && row.qc_job_start_date !== date) return false;
+        if (warehouse && row.warehouse_code !== warehouse) return false;
+        if (operator && row.qc_job_user_username !== operator) return false;
+        if (status && row.status !== status) return false;
+        if (issue && !issues(row).includes(issue)) return false;
+        if (search && !HEADERS.some(field => String(row[field]).toLocaleLowerCase().includes(search))) return false;
+        return true;
+      });
+      render();
+    }
+    function total(rows, field) { return rows.reduce((sum, row) => sum + row[field], 0); }
+    function percent(part, whole) { return whole ? `${(part / whole * 100).toFixed(1)}${currentLanguage === "en" ? "%" : "٪"}` : `0${currentLanguage === "en" ? "%" : "٪"}`; }
+    function displayUser(value) { return value ? value.split("@")[0] : "غير محدد"; }
+    function renderKpis(rows) {
+      const jobs = rows.length, source = total(rows, "src_container_qty"), dest = total(rows, "dest_container_qty");
+      const missing = total(rows, "missing_qty"), excess = total(rows, "excess_qty"), damaged = total(rows, "damaged_qty");
+      const cards = [
+        ["عمليات QC", numberFormat.format(jobs), `${new Set(rows.map(row => row.qc_job_start_date).filter(Boolean)).size} تاريخ`, "teal"],
+        ["كمية المصدر", numberFormat.format(source), "إجمالي الوحدات المسجلة للفحص", "blue"],
+        ["كمية الوجهة", numberFormat.format(dest), `${percent(dest, source)} من كمية المصدر`, "green"],
+        ["كمية النقص", numberFormat.format(missing), `${percent(missing, source)} من كمية المصدر`, "amber"],
+        ["كمية الزيادة", numberFormat.format(excess), `${rows.filter(row => row.excess_qty > 0).length} عملية بها زيادة`, "red"],
+        ["كمية التالف", numberFormat.format(damaged), `${rows.filter(row => row.damaged_qty > 0).length} عملية بها تالف`, "amber"]
+      ];
+      byId("kpis").innerHTML = cards.map(([label, value, note, color]) => `<article class="card kpi ${color}"><div class="kpi-label">${label}</div><div class="kpi-value">${value}</div><div class="kpi-note">${note}</div></article>`).join("");
+      const reconciled = rows.filter(row => row.src_container_qty === row.dest_container_qty + row.missing_qty).length;
+      const missingJobs = rows.filter(row => row.missing_qty > 0).length;
+      const noPicking = rows.filter(row => !row.picking_job_nr).length;
+      const mismatchJobs = rows.filter(row => row.src_container_qty !== row.dest_container_qty + row.missing_qty).length;
+      byId("insights").innerHTML = [
+        ["مطابقة الكميات", `${numberFormat.format(reconciled)} / ${numberFormat.format(jobs)} عملية`, mismatchJobs ? "warning" : "good"],
+        ["عمليات بها نقص", `${numberFormat.format(missingJobs)} · ${percent(missingJobs, jobs)} من العمليات`, missingJobs ? "warning" : "good"],
+        ["بدون رقم Picking", `${numberFormat.format(noPicking)} عملية`, noPicking ? "warning" : "good"]
+      ].map(([label, value, tone]) => `<article class="insight"><div class="insight-label">${label}</div><div class="insight-value ${tone}">${value}</div></article>`).join("");
+    }
+    function renderBars(targetId, items, options = {}) {
+      const target = byId(targetId);
+      if (!items.length) { target.innerHTML = '<div class="empty-chart">لا توجد بيانات ضمن الفلاتر الحالية.</div>'; return; }
+      const max = Math.max(1, ...items.map(item => item.value));
+      target.innerHTML = items.map(item => `<div class="bar-row"><span class="bar-label" title="${escapeHtml(item.label)}">${escapeHtml(item.label)}</span><div class="bar-track"><div class="bar-fill ${options.color || ""}" style="width:${Math.max(item.value > 0 ? 1 : 0, item.value / max * 100)}%"></div></div><span class="bar-value">${escapeHtml(item.display ?? numberFormat.format(item.value))}</span></div>`).join("");
+    }
+    function renderCharts(rows) {
+      const warehouses = new Map(), operators = new Map(), dates = new Map();
+      for (const row of rows) {
+        const warehouse = warehouses.get(row.warehouse_code) || { jobs: 0, source: 0, missing: 0 };
+        warehouse.jobs++; warehouse.source += row.src_container_qty; warehouse.missing += row.missing_qty;
+        warehouses.set(row.warehouse_code, warehouse);
+        const user = operators.get(row.qc_job_user_username) || { jobs: 0, missing: 0, missingJobs: 0, excess: 0 };
+        user.jobs++; user.missing += row.missing_qty; user.excess += row.excess_qty;
+        if (row.missing_qty > 0) user.missingJobs++;
+        operators.set(row.qc_job_user_username, user);
+        const date = dates.get(row.qc_job_start_date) || 0;
+        dates.set(row.qc_job_start_date, date + row.missing_qty);
+      }
+      renderBars("warehouseChart", [...warehouses].map(([label, value]) => ({ label, value: value.source, display: `${numberFormat.format(value.source)} وحدة · ${numberFormat.format(value.jobs)} عملية · نقص ${numberFormat.format(value.missing)}` })).sort((a,b) => b.value-a.value));
+      renderBars("operatorChart", [...operators].map(([label, value]) => ({ label: displayUser(label), value: value.jobs, display: `${numberFormat.format(value.jobs)} عملية · نقص ${numberFormat.format(value.missing)} (${value.missingJobs}) · زيادة ${numberFormat.format(value.excess)}` })).sort((a,b) => b.value-a.value), { color: "blue" });
+      renderBars("dateChart", [...dates].sort(([a],[b]) => dateKey(a).localeCompare(dateKey(b))).map(([label, value]) => ({ label, value, display: `${numberFormat.format(value)} وحدة` })), { color: "amber" });
+      const missing = rows.filter(row => row.missing_qty > 0).length;
+      const excess = rows.filter(row => row.excess_qty > 0).length;
+      const damaged = rows.filter(row => row.damaged_qty > 0).length;
+      const clean = rows.filter(row => issues(row).length === 1 && issues(row)[0] === "clean").length;
+      renderBars("issueChart", [
+        { label: "بدون فروقات مسجلة", value: clean, display: `${numberFormat.format(clean)} عملية` },
+        { label: "نقص", value: missing, display: `${numberFormat.format(missing)} عملية` },
+        { label: "زيادة", value: excess, display: `${numberFormat.format(excess)} عملية` },
+        { label: "تالف", value: damaged, display: `${numberFormat.format(damaged)} عملية` }
+      ], { color: "blue" });
+    }
+    function repeatedCodes(rows, field) {
+      const groups = new Map();
+      for (const row of rows) {
+        const code = row[field];
+        if (code) groups.set(code, (groups.get(code) || 0) + 1);
+      }
+      return [...groups].filter(([, count]) => count > 1);
+    }
+    function renderAlerts(rows) {
+      const mismatches = rows.filter(row => row.src_container_qty !== row.dest_container_qty + row.missing_qty);
+      const excessOverSource = rows.filter(row => row.excess_qty > row.src_container_qty);
+      const noPicking = rows.filter(row => !row.picking_job_nr);
+      const missingContainerCodes = rows.filter(row => !row.src_container_code || !row.dest_container_code);
+      const missingExcessCode = rows.filter(row => row.excess_qty > 0 && !row.excess_container_code);
+      const missingDamageCode = rows.filter(row => row.damaged_qty > 0 && !row.damage_container_code);
+      const duplicateSources = repeatedCodes(rows, "src_container_code");
+      const duplicateDestinations = repeatedCodes(rows, "dest_container_code");
+      const alerts = [
+        { severity: "مراجعة عاجلة", kind: "danger", title: "الزيادة أكبر من كمية المصدر", count: excessOverSource.length, detail: excessOverSource.map(row => `${row.job_nr}: زيادة ${row.excess_qty} مقابل مصدر ${row.src_container_qty}`).join(" · ") || "لا توجد حالات" },
+        { severity: "تحقق", kind: mismatches.length ? "danger" : "", title: "عدم تطابق المصدر مع الوجهة + النقص", count: mismatches.length, detail: mismatches.map(row => row.job_nr).join("، ") || "كل العمليات متطابقة حسابيًا" },
+        { severity: "تحقق", kind: noPicking.length || missingContainerCodes.length || missingExcessCode.length || missingDamageCode.length ? "warn" : "", title: "حقول تعريف ناقصة", count: noPicking.length + missingContainerCodes.length + missingExcessCode.length + missingDamageCode.length, detail: `كود مصدر/وجهة مفقود: ${missingContainerCodes.length} · رقم Picking مفقود: ${noPicking.length} · كود زيادة مفقود: ${missingExcessCode.length} · كود تالف مفقود: ${missingDamageCode.length}` },
+        { severity: "مطابقة", kind: duplicateSources.length || duplicateDestinations.length ? "warn" : "", title: "أكواد حاويات مكررة", count: duplicateSources.length + duplicateDestinations.length, detail: `المصدر: ${duplicateSources.map(([code,count]) => `${code} (${count})`).join("، ") || "لا يوجد"} · الوجهة: ${duplicateDestinations.map(([code,count]) => `${code} (${count})`).join("، ") || "لا يوجد"}` }
+      ];
+      const active = alerts.filter(item => item.count > 0).length;
+      byId("alertCount").textContent = `${numberFormat.format(active)} تنبيه`;
+      byId("alertsBody").innerHTML = alerts.map(item => `<tr><td><span class="badge ${item.kind}">${item.severity}</span></td><td>${item.title}</td><td>${numberFormat.format(item.count)}</td><td>${escapeHtml(item.detail)}</td></tr>`).join("");
+    }
+    function rowNote(row) {
+      const found = [];
+      if (row.missing_qty > 0) found.push("نقص");
+      if (row.excess_qty > 0) found.push("زيادة");
+      if (row.damaged_qty > 0) found.push("تالف");
+      if (!row.picking_job_nr) found.push("بدون Picking");
+      if (row.src_container_qty !== row.dest_container_qty + row.missing_qty) found.push("فرق غير مطابق");
+      if (state.duplicateSources.has(row.src_container_code) || state.duplicateDestinations.has(row.dest_container_code)) found.push("كود حاوية مكرر");
+      if (!row.src_container_code || !row.dest_container_code) found.push("كود حاوية مفقود");
+      return found.length ? `<span class="badge ${found.includes("فرق غير مطابق") ? "danger" : "warn"}">${found.join(" · ")}</span>` : '<span class="badge">بدون فروقات</span>';
+    }
+    function renderDetails(row, index) {
+      return `<tr class="details" id="details-${index}"><td colspan="11"><div class="detail-grid">${HEADERS.map(field => `<div class="detail-item"><span>${LABELS[field]}</span><b>${escapeHtml(row[field] || "—")}</b></div>`).join("")}</div></td></tr>`;
+    }
+    function renderRecords(rows) {
+      byId("tableCount").innerHTML = `السجلات المعروضة: <b>${numberFormat.format(rows.length)}</b>`;
+      if (!rows.length) {
+        byId("recordsBody").innerHTML = '<tr><td colspan="11" class="skeleton">لا توجد عمليات مطابقة للفلاتر.</td></tr>';
+        return;
+      }
+      byId("recordsBody").innerHTML = rows.map((row, index) => {
+        const rowId = `record-${index}`;
+        return `<tr class="detail-row" data-detail="${index}" aria-expanded="false"><td dir="ltr">${escapeHtml(row.job_nr || "—")}</td><td>${escapeHtml(row.qc_job_start_date || "—")}</td><td dir="ltr">${escapeHtml(row.warehouse_code || "—")}</td><td dir="ltr">${escapeHtml(displayUser(row.qc_job_user_username))}</td><td><span class="badge">${escapeHtml(row.status || "غير محدد")}</span></td><td>${numberFormat.format(row.src_container_qty)}</td><td>${numberFormat.format(row.dest_container_qty)}</td><td>${numberFormat.format(row.missing_qty)}</td><td>${numberFormat.format(row.excess_qty)}</td><td>${numberFormat.format(row.damaged_qty)}</td><td>${rowNote(row)}</td></tr>${renderDetails(row, index)}`;
+      }).join("");
+      byId("recordsBody").querySelectorAll(".detail-row").forEach(row => row.addEventListener("click", () => {
+        const detail = byId(`details-${row.dataset.detail}`);
+        const open = detail.classList.toggle("open");
+        row.setAttribute("aria-expanded", String(open));
+      }));
+    }
+    function render() {
+      const rows = state.filtered;
+      byId("recordMeta").innerHTML = `المعروض <strong>${numberFormat.format(rows.length)}</strong> من <strong>${numberFormat.format(state.rows.length)}</strong> عملية`;
+      renderKpis(rows);
+      renderCharts(rows);
+      renderAlerts(rows);
+      renderRecords(rows);
+      applyLanguage();
+    }
+    function reportSummaryHtml(rows) {
+      const reportNumberFormat = new Intl.NumberFormat("en-US");
+      const reportText = text => translations[text] || text;
+      const reportPercent = (part, whole) => whole ? `${(part / whole * 100).toFixed(1)}%` : "0%";
+      const jobs = rows.length;
+      const source = total(rows, "src_container_qty");
+      const destination = total(rows, "dest_container_qty");
+      const missing = total(rows, "missing_qty");
+      const excess = total(rows, "excess_qty");
+      const damaged = total(rows, "damaged_qty");
+      const reconciled = rows.filter(row => row.src_container_qty === row.dest_container_qty + row.missing_qty).length;
+      const missingJobs = rows.filter(row => row.missing_qty > 0).length;
+      const excessJobs = rows.filter(row => row.excess_qty > 0).length;
+      const damagedJobs = rows.filter(row => row.damaged_qty > 0).length;
+      const warehouseGroups = new Map();
+      for (const row of rows) {
+        const warehouseCode = row.warehouse_code || "Unspecified";
+        const group = warehouseGroups.get(warehouseCode) || { jobs: 0, source: 0, destination: 0, missing: 0 };
+        group.jobs++;
+        group.source += row.src_container_qty;
+        group.destination += row.dest_container_qty;
+        group.missing += row.missing_qty;
+        warehouseGroups.set(warehouseCode, group);
+      }
+      const warehouseDetails = [...warehouseGroups]
+        .sort((a, b) => b[1].source - a[1].source)
+        .map(([code, group]) => ({ code, ...group }));
+      const largestWarehouseSource = Math.max(1, ...warehouseDetails.map(group => group.source));
+      const warehouseRowsHtml = warehouseDetails.map(group => {
+        const barWidth = group.source ? Math.max(2, group.source / largestWarehouseSource * 100) : 0;
+        return `<article class="warehouse-row">
+          <div class="warehouse-top"><strong dir="ltr">${escapeHtml(group.code)}</strong><span>${escapeHtml(reportText("عدد العمليات"))}: ${reportNumberFormat.format(group.jobs)}</span></div>
+          <div class="warehouse-bar" role="img" aria-label="${escapeHtml(reportText("الكمية المفحوصة"))}: ${reportNumberFormat.format(group.source)}"><i style="width:${barWidth}%"></i></div>
+          <div class="warehouse-metrics">
+            <div><span>${escapeHtml(reportText("الكمية المفحوصة"))}</span><b>${reportNumberFormat.format(group.source)}</b></div>
+            <div><span>${escapeHtml(reportText("كمية الوجهة"))}</span><b>${reportNumberFormat.format(group.destination)}</b></div>
+            <div class="${group.missing ? "has-missing" : ""}"><span>${escapeHtml(reportText("النقص"))} · ${escapeHtml(reportPercent(group.missing, group.source))}</span><b>${reportNumberFormat.format(group.missing)}</b></div>
+          </div>
+        </article>`;
+      }).join("");
+      const summaryCards = [
+        ["عمليات QC", reportNumberFormat.format(jobs)],
+        ["كمية المصدر", reportNumberFormat.format(source)],
+        ["كمية الوجهة", reportNumberFormat.format(destination)],
+        ["كمية النقص", `${reportNumberFormat.format(missing)} (${reportPercent(missing, source)})`],
+        ["كمية الزيادة", reportNumberFormat.format(excess)],
+        ["كمية التالف", reportNumberFormat.format(damaged)],
+        ["عمليات غير متطابقة", reportNumberFormat.format(jobs - reconciled)],
+        ["عمليات بها نقص", reportNumberFormat.format(missingJobs)],
+        ["عمليات بها زيادة", reportNumberFormat.format(excessJobs)],
+        ["عمليات بها تالف", reportNumberFormat.format(damagedJobs)]
+      ];
+      const title = reportText("تقرير عمليات الجودة");
+      const direction = "ltr";
+      const reportCss = `
+        *{box-sizing:border-box}
+        body{margin:0;background:#f3f3ef;color:#171717;font-family:Arial,"Segoe UI",sans-serif;direction:${direction}}
+        .page{width:min(1180px,100%);min-height:760px;margin:auto;padding:28px 34px}
+        .masthead{display:flex;align-items:center;justify-content:space-between;gap:20px;padding:20px 24px;background:#171717;color:#fff;border-radius:16px;border-bottom:7px solid #ffe500;box-shadow:0 8px 24px #00000013}
+        .brand{display:flex;align-items:center;gap:18px;min-width:0}.logo{width:112px;height:72px;object-fit:contain;background:#f6df16;border-radius:10px}
+        .eyebrow{color:#ffe500;font-size:12px;font-weight:bold;letter-spacing:.08em}.masthead h1{margin:7px 0 0;font-size:28px;letter-spacing:-.03em}
+        .meta{text-align:${direction === "rtl" ? "left" : "right"};color:#ececec;font-size:12px;line-height:1.9;white-space:nowrap}
+        .meta strong{color:#ffe500;font-size:15px}.summary-title{display:flex;align-items:end;justify-content:space-between;gap:14px;margin:25px 2px 12px}
+        .summary-title h2{font-size:19px;margin:0}.summary-title p{font-size:11px;color:#666;margin:0}
+        .primary-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+        .secondary-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-top:10px}
+        .metric{position:relative;overflow:hidden;background:#fff;border:1px solid #e3e2dc;border-radius:12px;padding:15px 16px;box-shadow:0 3px 9px #00000008}
+        .metric.primary{min-height:108px;border-top:5px solid #ffe500;padding:16px 18px}
+        .metric.secondary{min-height:83px;border-inline-start:4px solid #ded000;padding:12px 14px}
+        .metric span{display:block;color:#68675f;font-size:11px;line-height:1.5}
+        .metric b{display:block;margin-top:8px;color:#171717;font-size:24px;font-weight:750;line-height:1.1;letter-spacing:-.02em}
+        .metric.secondary b{font-size:19px;margin-top:6px}
+        .metric.primary:last-child{border-top-color:#e52f3b}.metric.primary:last-child b{color:#a82830}
+        .warehouse-section{margin-top:20px}.warehouse-heading{display:flex;justify-content:space-between;align-items:end;gap:12px;margin:0 2px 10px}.warehouse-heading h2{font-size:16px;margin:0}.warehouse-heading p{color:#666;font-size:10px;margin:4px 0 0}
+        .warehouse-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+        .warehouse-row{padding:12px 14px;border:1px solid #e3e2dc;border-radius:11px;background:#fff;break-inside:avoid}
+        .warehouse-top{display:flex;justify-content:space-between;align-items:center;gap:10px;font-size:11px}.warehouse-top strong{font-size:13px;color:#252525}.warehouse-top span{color:#666}
+        .warehouse-bar{height:8px;margin:10px 0;background:#e8e7df;border-radius:99px;overflow:hidden}.warehouse-bar i{display:block;height:100%;border-radius:inherit;background:linear-gradient(90deg,#c9b900,#ffe500)}
+        .warehouse-metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.warehouse-metrics div{padding:7px 8px;border-radius:7px;background:#f5f4ef}
+        .warehouse-metrics span{display:block;color:#68675f;font-size:9px;line-height:1.4}.warehouse-metrics b{display:block;margin-top:4px;font-size:15px}
+        .warehouse-metrics .has-missing{background:#fff5df}.warehouse-metrics .has-missing b{color:#996000}
+        .print-actions{display:flex;gap:8px;justify-content:flex-end;margin:15px 0}
+        .print-actions button{border:0;border-radius:8px;padding:10px 16px;background:#ffe500;color:#111;font-weight:bold;cursor:pointer}
+        .print-actions button.secondary{background:#252525;color:#fff}
+        @page{size:A4 landscape;margin:10mm}
+        @media print{body{background:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact}.page{width:100%;min-height:0;padding:0}.masthead{box-shadow:none;border-radius:10px}.metric,.warehouse-row{box-shadow:none;break-inside:avoid}.warehouse-section{break-inside:avoid}.print-actions{display:none}}
+        @media(max-width:800px){.page{min-height:0;padding:16px}.masthead{align-items:flex-start;flex-direction:column}.meta{text-align:${direction === "rtl" ? "right" : "left"}}.primary-grid,.secondary-grid,.warehouse-list{grid-template-columns:repeat(2,minmax(0,1fr))}.summary-title{align-items:flex-start;flex-direction:column}}
+      `;
+      return `<!doctype html><html lang="en" dir="${direction}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${escapeHtml(title)}</title><style>${reportCss}</style></head><body><main class="page">
+        <header class="masthead"><div class="brand"><img class="logo" src="${new URL("noon-minutes-logo.png", location.href).href}" alt="noon Minutes"><div><div class="eyebrow">QC · NOON MINUTES</div><h1>${escapeHtml(title)}</h1></div></div><div class="meta">${escapeHtml(reportText("تاريخ إنشاء التقرير"))}<br><strong>${escapeHtml(reportText("عدد العمليات"))}: ${reportNumberFormat.format(jobs)}</strong></div></header>
+        <div class="summary-title"><h2>${escapeHtml(reportText("ملخص تنفيذي"))}</h2><p>A quick overview of quality inspection results</p></div>
+        <section class="primary-grid">${summaryCards.slice(0, 4).map(([label, value]) => `<article class="metric primary"><span>${escapeHtml(reportText(label))}</span><b>${escapeHtml(value)}</b></article>`).join("")}</section>
+        <section class="secondary-grid">${summaryCards.slice(4).map(([label, value]) => `<article class="metric secondary"><span>${escapeHtml(reportText(label))}</span><b>${escapeHtml(value)}</b></article>`).join("")}</section>
+        <section class="warehouse-section"><div class="warehouse-heading"><div><h2>${escapeHtml(reportText("تفاصيل الفحص حسب المخزن"))}</h2><p>${escapeHtml(reportText("عدد العمليات والكمية المفحوصة والوجهة والنقص لكل مخزن"))}</p></div></div><div class="warehouse-list">${warehouseRowsHtml || `<p>${escapeHtml(reportText("لا توجد بيانات ضمن الفلاتر الحالية."))}</p>`}</div></section>
+        </main></body></html>`;
+    }
+    async function openPdfReport() {
+      if (!state.filtered.length) { window.alert(localizeText("لا توجد سجلات لإنشاء التقرير.")); return; }
+      if (state.generatingPdf) return;
+      if (typeof window.html2pdf !== "function") {
+        throw new Error("مكتبة إنشاء PDF المحلية غير متاحة. أعيدي تحميل الصفحة وحاولي مرة أخرى.");
+      }
+      state.generatingPdf = true;
+      const button = byId("reportButton");
+      const previousLabel = button.textContent;
+      const frame = document.createElement("iframe");
+      button.disabled = true;
+      button.textContent = currentLanguage === "ar" ? "جارٍ إنشاء PDF..." : "Generating PDF...";
+      frame.setAttribute("aria-hidden", "true");
+      frame.tabIndex = -1;
+      frame.style.cssText = "position:fixed;left:0;top:0;width:1240px;height:1100px;border:0;opacity:0;pointer-events:none;z-index:-1";
+      document.body.appendChild(frame);
+      try {
+        const loaded = new Promise((resolve, reject) => {
+          const timeout = window.setTimeout(() => reject(new Error("انتهت مهلة تجهيز التقرير.")), 15000);
+          frame.addEventListener("load", () => {
+            window.clearTimeout(timeout);
+            resolve();
+          }, { once: true });
+        });
+        frame.srcdoc = reportSummaryHtml(state.filtered);
+        await loaded;
+        const reportDocument = frame.contentDocument;
+        const reportPage = reportDocument?.querySelector(".page");
+        if (!reportDocument || !reportPage) throw new Error("تعذر تجهيز محتوى التقرير.");
+        await reportDocument.fonts?.ready;
+        const images = [...reportPage.querySelectorAll("img")];
+        await Promise.all(images.map(async image => {
+          if (!image.complete) await new Promise((resolve, reject) => {
+            image.addEventListener("load", resolve, { once: true });
+            image.addEventListener("error", () => reject(new Error("تعذر تحميل شعار التقرير.")), { once: true });
+          });
+          if (!image.naturalWidth) throw new Error("تعذر تحميل شعار التقرير.");
+        }));
+        const pdfLibrary = reportDocument.createElement("script");
+        pdfLibrary.src = new URL("html2pdf.bundle.min.js", location.href).href;
+        const libraryLoaded = new Promise((resolve, reject) => {
+          pdfLibrary.addEventListener("load", resolve, { once: true });
+          pdfLibrary.addEventListener("error", () => reject(new Error("تعذر تحميل مكتبة إنشاء PDF المحلية.")), { once: true });
+        });
+        reportDocument.head.appendChild(pdfLibrary);
+        await libraryLoaded;
+        const reportHtml2pdf = frame.contentWindow?.html2pdf;
+        if (typeof reportHtml2pdf !== "function") throw new Error("مكتبة إنشاء PDF لم تبدأ بشكل صحيح.");
+        const date = new Date().toISOString().slice(0, 10);
+        const pdfBlob = await reportHtml2pdf().set({
+          filename: `QC-Summary-${date}.pdf`,
+          margin: 8,
+          image: { type: "jpeg", quality: 0.98 },
+          html2canvas: { scale: 1.5, useCORS: true, backgroundColor: "#f3f3ef", logging: false, windowWidth: 1180 },
+          jsPDF: { unit: "mm", format: "a4", orientation: "landscape" }
+        }).from(reportPage).outputPdf("blob");
+        if (!pdfBlob || typeof pdfBlob.size !== "number" || pdfBlob.size === 0) throw new Error("ملف PDF الناتج فارغ.");
+        const downloadUrl = URL.createObjectURL(pdfBlob);
+        const downloadLink = document.createElement("a");
+        downloadLink.href = downloadUrl;
+        downloadLink.download = `QC-Summary-${date}.pdf`;
+        downloadLink.hidden = true;
+        document.body.appendChild(downloadLink);
+        downloadLink.click();
+        downloadLink.remove();
+        if (state.reportDownloadUrl) URL.revokeObjectURL(state.reportDownloadUrl);
+        state.reportDownloadUrl = downloadUrl;
+        byId("notice").innerHTML = `${escapeHtml(localizeText("تم تجهيز التقرير بصيغة PDF. إذا لم يبدأ التنزيل تلقائيًا، اضغط هنا لتنزيله."))} <a href="${escapeHtml(downloadUrl)}" download="${escapeHtml(downloadLink.download)}">${escapeHtml(currentLanguage === "ar" ? "تنزيل التقرير" : "Download report")}</a>`;
+        byId("notice").classList.add("show", "success");
+      } catch (error) {
+        byId("notice").innerHTML = `<strong>${escapeHtml(localizeText("تعذر إنشاء PDF."))}</strong> ${escapeHtml(error.message)}`;
+        byId("notice").classList.add("show");
+        throw error;
+      } finally {
+        frame.remove();
+        state.generatingPdf = false;
+        button.disabled = false;
+        button.textContent = currentLanguage === "ar" ? "▤ تقرير ملخص PDF" : "▤ Summary report PDF";
+      }
+    }
+    function exportCsv() {
+      if (!state.filtered.length) { window.alert("لا توجد بيانات لتصديرها."); return; }
+      const quote = value => `"${String(value ?? "").replace(/"/g, '""')}"`;
+      const csv = [HEADERS.map(quote).join(","), ...state.filtered.map(row => HEADERS.map(field => quote(row[field])).join(","))].join("\r\n");
+      const url = URL.createObjectURL(new Blob(["\uFEFF", csv], { type: "text/csv;charset=utf-8" }));
+      const link = document.createElement("a");
+      link.href = url; link.download = "qc-filtered-details.csv";
+      document.body.appendChild(link); link.click(); link.remove(); URL.revokeObjectURL(url);
+    }
+    for (const id of ["dateFilter", "warehouseFilter", "operatorFilter", "statusFilter", "issueFilter"]) byId(id).addEventListener("change", applyFilters);
+    byId("searchFilter").addEventListener("input", applyFilters);
+    byId("refreshButton").addEventListener("click", loadData);
+    byId("reportButton").addEventListener("click", openPdfReport);
+    byId("languageButton").addEventListener("click", () => {
+      currentLanguage = currentLanguage === "ar" ? "en" : "ar";
+      localStorage.setItem("qc-dashboard-language", currentLanguage);
+      render();
+      applyLanguage();
+    });
+    byId("exportButton").addEventListener("click", exportCsv);
+    byId("resetButton").addEventListener("click", () => {
+      for (const id of ["dateFilter", "warehouseFilter", "operatorFilter", "statusFilter", "issueFilter"]) byId(id).value = "";
+      byId("searchFilter").value = "";
+      applyFilters();
+    });
+    loadData();
+  </script>
+</body>
+</html>
